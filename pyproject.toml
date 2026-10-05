@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sst"
+version = "0.1.0"
+description = "Hidden-state probes for reasoning failure analysis"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.11"
+dependencies = [
+    "torch==2.10.0",
+    "transformers==5.3.0",
+    "accelerate==1.13.0",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scipy",
+    "scikit-learn==1.7.1",
+    "matplotlib==3.10.6",
+    "math-verify>=0.8.0",
+    "sympy",
+    "pebble>=5.2.0",
+    "huggingface_hub>=0.23.0",
+    "safetensors>=0.4.0",
+    "httpx>=0.27.0"
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["sst*", "analysis*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

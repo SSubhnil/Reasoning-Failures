@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper."
+title: "Effectiveness of Hidden-State Probes for Localizing Reasoning Failures"
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/SSubhnil/Reasoning-Failures"
+url: "https://openreview.net/forum?id=X1D0ZeEeZ4"
+keywords:
+  - mechanistic interpretability
+  - hidden-state probes
+  - reasoning models
+  - Monte Carlo rollouts
+  - vLLM
+  - Qwen3
+authors:
+  - family-names: Subhnil
+    given-names: Shubham
+  - family-names: Belkhiter
+    given-names: Yannis
+  - family-names: Miehling
+    given-names: Erik
+  - family-names: Dahlgren Lindström
+    given-names: Adam
+  - family-names: Daly
+    given-names: Elizabeth M.
+preferred-citation:
+  type: conference-paper
+  title: "Effectiveness of Hidden-State Probes for Localizing Reasoning Failures"
+  collection-title: "Interpretability as a Science: NeurIPS 2026 Workshop"
+  year: 2026
+  url: "https://openreview.net/forum?id=X1D0ZeEeZ4"
+  authors:
+    - family-names: Subhnil
+      given-names: Shubham
+    - family-names: Belkhiter
+      given-names: Yannis
+    - family-names: Miehling
+      given-names: Erik
+    - family-names: Dahlgren Lindström
+      given-names: Adam
+    - family-names: Daly
+      given-names: Elizabeth M.
