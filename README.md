@@ -1,6 +1,6 @@
 # Effectiveness of Hidden-State Probes for Localizing Reasoning Failures
 
-**InterpScience Workshop, NeurIPS 2026**
+**Interpretability as a Science: NeurIPS 2026 Workshop**
 
 [![Paper](https://img.shields.io/badge/OpenReview-Paper-8c1b13)](https://openreview.net/forum?id=X1D0ZeEeZ4)
 [![Code](https://img.shields.io/badge/GitHub-Code-181717?logo=github)](https://github.com/SSubhnil/Reasoning-Failures)
