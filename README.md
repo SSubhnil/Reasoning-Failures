@@ -2,7 +2,8 @@
 
 **Interpretability as a Science: NeurIPS 2026 Workshop**
 
-[![Paper](https://img.shields.io/badge/OpenReview-Paper-8c1b13)](https://openreview.net/forum?id=X1D0ZeEeZ4)
+[![arXiv](https://img.shields.io/badge/arXiv-2610.22046-b31b1b?logo=arxiv)](https://arxiv.org/abs/2610.22046)
+[![OpenReview](https://img.shields.io/badge/OpenReview-Paper-8c1b13)](https://openreview.net/forum?id=X1D0ZeEeZ4)
 [![Code](https://img.shields.io/badge/GitHub-Code-181717?logo=github)](https://github.com/SSubhnil/Reasoning-Failures)
 [![Dataset](https://img.shields.io/badge/Hugging%20Face-Dataset-ffd21e?logo=huggingface)](https://huggingface.co/datasets/ssubhnil/Reasoning-Failures)
 
@@ -90,13 +91,15 @@ The first command gives held-out detection AUROC across retraining seeds, the se
 ## Citation
 
 ```bibtex
-@inproceedings{
-subhnil2026effectiveness,
-title={Effectiveness of Hidden-State Probes for Localizing Reasoning Failures},
-author={Shubham Subhnil and Yannis Belkhiter and Erik Miehling and Adam Dahlgren Lindstr{\"o}m and Elizabeth M. Daly},
-booktitle={Interpretability as a Science: NeurIPS 2026 Workshop},
-year={2026},
-url={https://openreview.net/forum?id=X1D0ZeEeZ4}
+@inproceedings{subhnil2026effectiveness,
+  title={Effectiveness of Hidden-State Probes for Localizing Reasoning Failures},
+  author={Shubham Subhnil and Yannis Belkhiter and Erik Miehling and Adam Dahlgren Lindstr{\"o}m and Elizabeth M. Daly},
+  booktitle={Interpretability as a Science: NeurIPS 2026 Workshop},
+  year={2026},
+  eprint={2610.22046},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2610.22046}
 }
 ```
 
