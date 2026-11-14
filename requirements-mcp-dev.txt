@@ -1,0 +1,6 @@
+-r requirements-mcp.txt
+pytest>=8
+pytest-cov>=5
+respx>=0.21
+ruff>=0.6
+pyarrow
