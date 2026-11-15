@@ -88,6 +88,21 @@ The first command gives held-out detection AUROC across retraining seeds, the se
 
 `scripts.run_step_rollouts` builds one prefix per step of each requested trace (paragraphs are merged until a step reaches `--step-k` tokens) and samples `--k` continuations from each with vLLM in process, with prefix caching. On one L40S (48 GB), `--max-num-seqs 256 --prefix-batch 64` gave the highest throughput of the settings we timed: 1,406 generated tokens/s for Qwen3-4B and 833 for Qwen3-8B. The timed workload had 35 prefixes, so at `--prefix-batch 64` all of them went in one call. GPU utilization read about 100 % in every setting, so the settings are compared by tokens/s. [docs/throughput.md](docs/throughput.md) lists the settings, the measured table and the graphs.
 
+## MCP server
+
+`sst_mcp` is a read-only [MCP](https://modelcontextprotocol.io) server over the dataset, so a coding agent can find
+failed traces, read them whole or split into the paper's steps, re-check answers with the paper's math checker and
+get accuracy breakdowns. A hosted copy runs on the Hugging Face Space
+[ssubhnil/reasoning-failures-mcp](https://huggingface.co/spaces/ssubhnil/reasoning-failures-mcp):
+
+```sh
+claude mcp add --transport http reasoning-failures https://ssubhnil-reasoning-failures-mcp.hf.space/mcp
+```
+
+[docs/mcp.md](docs/mcp.md) covers local install, the five tools and their limits;
+[skills/reasoning-failure-analysis](skills/reasoning-failure-analysis/SKILL.md) is the skill that tells the agent
+how to use them, and [evals/](evals/README.md) has the tool-calling eval.
+
 ## Citation
 
 ```bibtex
