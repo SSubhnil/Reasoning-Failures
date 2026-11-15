@@ -14,6 +14,8 @@ from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from pydantic import Field
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
 
 from . import steps as steps_mod
 from .checker import AnswerChecker, normalise_gold
@@ -203,6 +205,76 @@ def _fit_steps(trace: str, spans: list[tuple[int, int]], max_chars: int) -> tupl
     return kept, dropped, truncated
 
 
+LANDING_PAGE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reasoning-Failures MCP</title>
+<style>
+:root { color-scheme: light dark; --fg: #1d1f23; --bg: #fbfaf7; --muted: #5d636b; --card: #ffffff;
+        --line: #e4e1da; --accent: #c2410c; --code: #f3f1ec; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg: #e8e6e1; --bg: #121314; --muted: #9a9fa6; --card: #1a1c1e; --line: #2c2f33;
+          --accent: #fb923c; --code: #202326; } }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--fg); background: var(--bg); font: 17px/1.6 Georgia, "Iowan Old Style", serif; }
+main { max-width: 44rem; margin: 0 auto; padding: 3rem 1rem 4rem; }
+h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 0.6rem; letter-spacing: -0.01em; }
+h1 span { color: var(--accent); }
+h2 { font: 600 0.8rem/1 system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.12em;
+     color: var(--muted); margin: 2.4rem 0 0.8rem; }
+.lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 1.6rem; }
+code, pre { font: 14px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+code { background: var(--code); padding: 0.1rem 0.35rem; border-radius: 4px; overflow-wrap: anywhere; }
+.card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+        border-radius: 8px; padding: 1rem 1.1rem; }
+.card pre { margin: 0.5rem 0 0; padding: 0; white-space: pre-wrap; word-break: break-all; }
+ul { padding-left: 1.2rem; } li { margin: 0.35rem 0; }
+.try li { list-style: none; margin-left: -1.2rem; padding: 0.55rem 0.9rem; border: 1px dashed var(--line);
+          border-radius: 8px; margin-bottom: 0.5rem; font-style: italic; }
+a { color: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted);
+         font-size: 0.9rem; }
+</style></head><body><main>
+<h1>Where does Qwen3 get math <span>wrong</span>?</h1>
+<p class="lede">Ask your agent. This server gives it read access to 1.4 million reasoning traces from Qwen3 1.7B to
+14B on nine collections of math problems (AIME, MATH, GSM-Plus, DeepMath, Putnam-AXIOM and more), each with the gold
+answer, the model's answer and whether it was right.</p>
+<p>There's nothing to click here. It's an <a href="https://modelcontextprotocol.io">MCP</a> server, so it talks to
+MCP clients like Claude Code, not browsers.</p>
+
+<h2>Connect</h2>
+<div class="card">From Claude Code:
+<pre>claude mcp add --transport http reasoning-failures https://ssubhnil-reasoning-failures-mcp.hf.space/mcp</pre></div>
+<p>Any other MCP client: point it at <code>https://ssubhnil-reasoning-failures-mcp.hf.space/mcp</code>
+(Streamable HTTP).</p>
+
+<h2>What your agent gets</h2>
+<ul>
+<li><code>list_collections</code>: the nine collections and what's in each.</li>
+<li><code>accuracy_breakdown</code>: accuracy by model, subject, level or token budget.</li>
+<li><code>find_traces</code>: failed (or correct) traces that match your filters, or a text search.</li>
+<li><code>get_trace</code>: one trace, as its ending, the full text, or split into steps the way the paper does it.</li>
+<li><code>check_answer</code>: re-grade an answer with the same math checker the paper used.</li>
+</ul>
+<p>Everything is read-only.</p>
+
+<h2>Things to ask</h2>
+<ul class="try">
+<li>At which token budget does Qwen3-8B do worst on AIME? Show me a failed trace from it.</li>
+<li>Give me three wrong Qwen3-14B answers on Level 5 MATH-500 problems.</li>
+<li>Search the Putnam-AXIOM traces for "pigeonhole".</li>
+</ul>
+
+<footer>
+Data: <a href="https://huggingface.co/datasets/ssubhnil/Reasoning-Failures">ssubhnil/Reasoning-Failures</a>
+(CC BY 4.0). Code, docs and a Claude Code skill for failure analysis:
+<a href="https://github.com/SSubhnil/Reasoning-Failures/blob/main/docs/mcp.md">GitHub</a> (Apache-2.0).<br>
+From the paper <a href="https://openreview.net/forum?id=X1D0ZeEeZ4">Effectiveness of Hidden-State Probes for
+Localizing Reasoning Failures</a>, Interpretability as a Science: NeurIPS 2026 Workshop.
+</footer>
+</main></body></html>
+"""
+
+
 def build_server(
     host: str = "127.0.0.1", port: int = 8000, http: bool = False, services: Services | None = None
 ) -> FastMCP:
@@ -221,6 +293,11 @@ def build_server(
         streamable_http_path="/mcp",
         transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False) if http else None,
     )
+
+    @mcp.custom_route("/", methods=["GET"])
+    async def landing_page(request: Request) -> HTMLResponse:
+        """A page for people who open the server's URL in a browser (the Space page shows `/`)."""
+        return HTMLResponse(LANDING_PAGE)
 
     @mcp.tool(annotations=READ_ONLY)
     @_logged
