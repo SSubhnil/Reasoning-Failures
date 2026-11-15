@@ -576,3 +576,13 @@ async def test_resources_and_prompt(server):
         prompt = await client.get_prompt("analyse_failures", {"collection": "eval_aime", "model": "qwen3-8b"})
         text = prompt.messages[0].content.text
         assert "find_traces(collection='eval_aime', model='qwen3-8b', correct=False" in text
+
+
+def test_landing_page(server):
+    from starlette.testclient import TestClient
+
+    with TestClient(server.streamable_http_app()) as client:
+        resp = client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "https://ssubhnil-reasoning-failures-mcp.hf.space/mcp" in resp.text
