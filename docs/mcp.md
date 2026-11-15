@@ -83,9 +83,11 @@ Details:
   so such an element is also converted to LaTeX with sympy and checked in that form. The conversion accepts only
   short text over a fixed character set and evaluates it with sympy names only, no builtins or attribute access.
   `gt_used` shows what was checked. The check runs in a separate process with a hard timeout (`reason="timeout"`).
-  On 360 sampled rows from seven collections (15 Nov 2026), the verdict matched the paper's checker on all 360 and
-  the dataset's `correct_answer_forced` on 358. It differs from `correct_strict` on rows with
-  `answer_forced=true`, because `correct_strict` counts those as wrong whatever the answer.
+  `scripts/compare_checkers.py` checks this on real rows. On 360 rows from seven collections (15 Nov 2026) the
+  verdict was the same as `RuleBasedChecker.check` given the same golds on all 360, and agreed with the dataset's
+  `correct_answer_forced` on 359 (the miss: gold `5*i + 1` against `1+5i`) and with `correct_strict` on all 206
+  rows without `answer_forced`. `correct_strict` is false on every `answer_forced` row, whatever the answer, so
+  `check_answer` differs from it there.
 - **Breakdowns.** `accuracy_breakdown` runs DuckDB over the dataset's parquet conversion
   (`hf://datasets/ssubhnil/Reasoning-Failures@~parquet/<collection>/train/*.parquet`), reading only the group
   column and the two correctness columns, with a 20 s limit per query. Results are cached on disk for a day
