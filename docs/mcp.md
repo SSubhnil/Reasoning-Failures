@@ -77,8 +77,8 @@ Details:
   paper. `scripts/compare_steps.py` checks this: on 210 full-length traces from seven collections (up to 32,808
   tokens; 15 Nov 2026), the token ids and the step spans at `step_tokens` 400 and 200 were identical to the
   paper's path (`transformers` tokenizers of Qwen3-4B and Qwen3-8B), and Qwen3-1.7B to 14B share one
-  `tokenizer.json`. When the steps do not fit `max_chars`, the first two and the last step are kept and middle steps are
-  dropped, earliest first; `dropped_step_indices` lists them.
+  `tokenizer.json`. When the steps do not fit `max_chars`, the first two and the last step are kept and middle
+  steps are dropped, earliest first; `dropped_step_indices` lists them.
 - **Answer checking.** `gt_answer` as stored in the dataset is a list in a string, such as `'[106]'`. The tool
   parses the list and wraps each element in `\boxed{}` (unless it already has `\boxed{` or `$`), because the
   checker reads gold answers only from `\boxed{}` or `$...$`; the answer is correct if any element verifies.
