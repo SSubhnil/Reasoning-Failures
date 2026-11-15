@@ -49,7 +49,7 @@ jobs:
           cache-dependency-path: requirements-mcp*.txt
       - run: pip install -r requirements-mcp-dev.txt
       - run: pip install --no-deps -e .
-      - run: ruff check sst_mcp tests/mcp_server evals scripts/build_mcp_enums.py scripts/record_mcp_fixtures.py scripts/smoke_mcp_http.py scripts/lint_skill.py scripts/compare_checkers.py
+      - run: ruff check sst_mcp tests/mcp_server evals scripts/build_mcp_enums.py scripts/record_mcp_fixtures.py scripts/smoke_mcp_http.py scripts/lint_skill.py scripts/compare_checkers.py scripts/compare_steps.py
       - run: pytest tests/mcp_server -q --cov=sst_mcp --cov-report=term-missing --cov-fail-under=85
         env:
           HF_HUB_OFFLINE: "1"
