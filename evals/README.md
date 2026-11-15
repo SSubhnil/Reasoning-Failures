@@ -111,4 +111,4 @@ from `find_traces` output without reading traces, and count every `get_trace` vi
 - t10 passed: two `get_trace` calls, then an answer.
 - t06 ("which collections, how many rows") called `list_collections` 8 times and ran out of turns. Run 4 shows
   the same loop on t07 before the change, and t06 rerun three times passed three times, looping once (7 calls)
-  before answering, so this is the model, not the skill change.
+  before answering (files `_run6-t06-rerun1` to `3`), so this is the model, not the skill change.
