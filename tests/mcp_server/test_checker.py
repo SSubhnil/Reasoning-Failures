@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from sst_mcp.checker import AnswerChecker, _score, normalise_gold, summarise
+from sst_mcp.checker import AnswerChecker, _score, normalise_gold, summarise, sympy_gold_to_latex
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -18,10 +18,45 @@ sys.path.insert(0, str(Path(__file__).parent))
         ("42", ["\\boxed{42}"]),
         ("[1, 2", ["\\boxed{[1, 2}"]),
         ("[]", []),
+        ("[2*pi + 18]", ["\\boxed{2*pi + 18}"]),
+        ("[Interval(1, 100)]", ["\\boxed{Interval(1, 100)}"]),
     ],
 )
 def test_normalise_gold(gt, expected):
     assert normalise_gold(gt) == expected
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("2*pi + 18", "2 \\pi + 18"),
+        ("(16*pi)/3", "\\frac{16 \\pi}{3}"),
+        ("Interval.open(0, 1)", "\\left(0, 1\\right)"),
+        ("Eq(x, 2)", "x = 2"),
+        ("a_1 + b_2", "a_{1} + b_{2}"),
+    ],
+)
+def test_sympy_gold_to_latex(text, expected):
+    assert sympy_gold_to_latex(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text", ["().__class__", "x.subs(1, 2)", "Symbol.mro()", "'a'", "x;y", "\\frac{1}{2}", "1" * 301, "lambda: 1"]
+)
+def test_sympy_gold_to_latex_rejects(text):
+    assert sympy_gold_to_latex(text) is None
+
+
+def test_sympy_gold_to_latex_has_no_builtins():
+    # Unknown names, builtins included, become undefined sympy functions, never Python calls.
+    assert sympy_gold_to_latex("open(1)") == "\\operatorname{open}{\\left(1 \\right)}"
+
+
+def test_score_sympy_printed_gold():
+    # Without the LaTeX form, '2*pi + 18' is read as 2*i*p + 18 and a correct answer fails.
+    assert _score("so \\boxed{18 + 2\\pi}", "\\boxed{2*pi + 18}")[0] is True
+    assert _score("so \\boxed{[1, 100]}", "\\boxed{Interval(1, 100)}")[0] is True
+    assert _score("so \\boxed{17}", "\\boxed{(16*pi)/3}")[0] is False
 
 
 def test_score_in_process():

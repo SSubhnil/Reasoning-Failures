@@ -79,7 +79,13 @@ Details:
 - **Answer checking.** `gt_answer` as stored in the dataset is a list in a string, such as `'[106]'`. The tool
   parses the list and wraps each element in `\boxed{}` (unless it already has `\boxed{` or `$`), because the
   checker reads gold answers only from `\boxed{}` or `$...$`; the answer is correct if any element verifies.
+  Most stored golds are sympy-printed (`'[2*pi + 18]'`, `'[Interval(1, 100)]'`), which the LaTeX reader misparses,
+  so such an element is also converted to LaTeX with sympy and checked in that form. The conversion accepts only
+  short text over a fixed character set and evaluates it with sympy names only, no builtins or attribute access.
   `gt_used` shows what was checked. The check runs in a separate process with a hard timeout (`reason="timeout"`).
+  On 360 sampled rows from seven collections (15 Nov 2026), the verdict matched the paper's checker on all 360 and
+  the dataset's `correct_answer_forced` on 358. It differs from `correct_strict` on rows with
+  `answer_forced=true`, because `correct_strict` counts those as wrong whatever the answer.
 - **Breakdowns.** `accuracy_breakdown` runs DuckDB over the dataset's parquet conversion
   (`hf://datasets/ssubhnil/Reasoning-Failures@~parquet/<collection>/train/*.parquet`), reading only the group
   column and the two correctness columns, with a 20 s limit per query. Results are cached on disk for a day

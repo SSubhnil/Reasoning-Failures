@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import threading
 from collections.abc import Callable
 from typing import Any
@@ -26,6 +27,10 @@ def _score(trace: str, gt: str, steps: Any = None) -> tuple[bool, dict[str, Any]
 
     checker = _WORKER["checker"]
     gold = checker.extract_answer(gt)
+    if gt.startswith("\\boxed{") and gt.endswith("}"):
+        latex = sympy_gold_to_latex(gt[len("\\boxed{") : -1])
+        if latex is not None:
+            gold = list(gold) + list(checker.extract_answer("\\boxed{" + latex + "}"))
     pred = parse(
         _canon_binary_boxed(trace),
         extraction_config=checker._boxed_cfg,
@@ -40,6 +45,40 @@ def _score(trace: str, gt: str, steps: Any = None) -> tuple[bool, dict[str, Any]
     except Exception:
         extracted = str(pred[0])
     return correct, {"reason": "ok", "extracted_answer": extracted}
+
+
+_SYMPY_NAMES = (
+    "sqrt pi oo E I Interval Union Intersection Complement FiniteSet EmptySet Eq Ne Lt Le Gt Ge Matrix "
+    "factorial binomial log exp sin cos tan cot sec csc asin acos atan acot sinh cosh tanh Abs floor ceiling "
+    "gamma Sum Product Rational Integer Float Symbol Function Mul Add Pow"
+).split()
+_SYMPY_GOLD_RE = re.compile(r"[0-9A-Za-z_ +\-*/().,{}\[\]<>=]{1,300}")
+_ATTR_RE = re.compile(r"\.(?=[A-Za-z_])")
+_INTERVAL_ATTR_RE = re.compile(r"\bInterval\.(?:open|Lopen|Ropen)\b")
+
+
+def sympy_gold_to_latex(text: str) -> str | None:
+    """LaTeX for a gold answer stored as a sympy-printed string (`2*pi + 18`, `Interval.open(0, 1)`), or None.
+
+    The dataset stores most gold answers as `str()` of sympy objects, which the LaTeX parser misreads
+    (`2*pi + 18` comes out as 2*i*p + 18). `parse_expr` evaluates Python, and the text may come from the caller,
+    so only short text over a fixed character set is accepted, without `__` or attribute access other than
+    `Interval.open`/`Lopen`/`Ropen`, and it is evaluated in a namespace of sympy names only, without builtins.
+    Unknown names become symbols."""
+    text = re.sub(r"\s+", " ", text.strip())  # sympy prints matrices over several lines
+    if not _SYMPY_GOLD_RE.fullmatch(text) or "__" in text:
+        return None
+    if _ATTR_RE.search(_INTERVAL_ATTR_RE.sub("Interval", text)):
+        return None
+    import sympy
+    from sympy.parsing.sympy_parser import parse_expr
+
+    namespace: dict[str, Any] = {"__builtins__": {}}
+    namespace.update({name: getattr(sympy, name) for name in _SYMPY_NAMES})
+    try:
+        return sympy.latex(parse_expr(text, local_dict={}, global_dict=namespace, evaluate=False))
+    except Exception:
+        return None
 
 
 def _warm(trace: str, gt: str, steps: Any = None) -> tuple[bool, dict[str, Any]]:
@@ -60,7 +99,9 @@ def normalise_gold(gt_answer: str) -> list[str]:
                 elems = value
                 break
     if elems is None:
-        elems = [text]
+        # Not a JSON or Python literal, e.g. '[2*pi + 18]' (a sympy-printed gold): drop the brackets.
+        inner = text[1:-1].strip() if text.startswith("[") and text.endswith("]") else text
+        elems = [inner]
     out = []
     for elem in elems:
         s = str(elem).strip()
