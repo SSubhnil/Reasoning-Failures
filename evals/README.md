@@ -25,7 +25,8 @@ connection. Its output files carry a `dryrun_` prefix and are not a model score.
 
 The default model (`nvidia/nemotron-3-ultra-550b-a55b:free`) is a free OpenRouter model with tool calling, listed on
 14 Nov 2026; pass `--model` if it is no longer available. `accuracy_breakdown`, `find_traces` and `get_trace`
-query Hugging Face, so a full run depends on the dataset viewer being up. A tool error is fed back to the model and recorded as `is_error`.
+query Hugging Face, so a full run needs network access; `find_traces` falls back to the parquet files when the
+dataset viewer fails (see `docs/mcp.md`). A tool error is fed back to the model and recorded as `is_error`.
 
 ## Scoring
 
@@ -58,4 +59,22 @@ Runs on 14 Nov 2026 with `nvidia/nemotron-3-ultra-550b-a55b:free`, no `HF_TOKEN`
   35 "Authentication check" 500s and one 502.
 - Rerun in run 3, four of the five passed. t09 failed again: after reading three traces it called `check_answer`
   and ran out of turns, which is model behaviour, not an outage.
-- Scores therefore depend on the viewer's availability; set `HF_TOKEN` for future runs.
+- Scores therefore depended on the viewer's availability.
+
+Runs on 15 Nov 2026 with the same model, with `HF_TOKEN` set and the `find_traces` parquet fallback (files suffixed
+`_run4` and `_run5`):
+
+| run | change | passed | tool selection | arguments | refuse | tool calls that errored |
+|---|---|---|---|---|---|---|
+| 4 | fallback reads metadata only | 18/20 | 15/17 | 15/17 | 3/3 | 0 of 56 |
+| 5 | fallback also reads traces, so `text_query` searches them | 19/20 | 16/17 | 16/17 | 3/3 | 1 of 58 |
+
+- The viewer still failed with a token, so most `find_traces` pages in both runs came from parquet; no task
+  failed on an upstream error.
+- In run 4, t10 ("traces that mention pigeonhole") found 0 rows, because the fallback matched only the question,
+  and the model ran out of turns trying other queries. t17 ran out of turns after reading traces.
+- In run 5, t10 found matching traces but the model kept reading them (six `get_trace` calls) and ran out of
+  turns, which is model behaviour. The one errored call was `check_answer` with an empty `response` in t17,
+  rejected by argument validation; the task still passed, since the eval scores the calls, not the final answer.
+- A first attempt at run 5 was discarded: the host's file share dropped mid-run and every task from t12 on hit
+  local I/O errors.
