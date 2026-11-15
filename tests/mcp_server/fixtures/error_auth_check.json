@@ -1,0 +1,8 @@
+{
+ "endpoint": "filter",
+ "params": {},
+ "status": 500,
+ "body": {
+  "error": "Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue."
+ }
+}

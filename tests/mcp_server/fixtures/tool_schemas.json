@@ -1,0 +1,1127 @@
+[
+ {
+  "name": "accuracy_breakdown",
+  "description": "Accuracy per group (model, subject, level, token_budget, finish_reason or dataset) over a whole collection.\n\n        Use it to find where accuracy drops before looking at individual traces. accuracy_strict uses\n        correct_strict; accuracy_answer_forced uses correct_answer_forced.",
+  "inputSchema": {
+   "properties": {
+    "collection": {
+     "description": "Collection name from list_collections.",
+     "enum": [
+      "eval_aime",
+      "eval_competition_math",
+      "eval_deepmath",
+      "eval_gsm_plus",
+      "eval_math500",
+      "eval_math_perturb",
+      "eval_math_test",
+      "eval_math_train_l1_3_indist",
+      "eval_putnam_axiom"
+     ],
+     "title": "Collection",
+     "type": "string"
+    },
+    "group_by": {
+     "description": "Column to group by.",
+     "enum": [
+      "model",
+      "subject",
+      "level",
+      "token_budget",
+      "finish_reason",
+      "dataset"
+     ],
+     "title": "Group By",
+     "type": "string"
+    },
+    "model": {
+     "anyOf": [
+      {
+       "enum": [
+        "qwen3-1.7b",
+        "qwen3-4b",
+        "qwen3-8b",
+        "qwen3-14b"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Only rows from this model.",
+     "title": "Model"
+    },
+    "token_budget": {
+     "anyOf": [
+      {
+       "maximum": 10000000,
+       "minimum": 1,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Only rows with this token budget.",
+     "title": "Token Budget"
+    }
+   },
+   "required": [
+    "collection",
+    "group_by"
+   ],
+   "title": "accuracy_breakdownArguments",
+   "type": "object"
+  },
+  "outputSchema": {
+   "$defs": {
+    "BreakdownRow": {
+     "properties": {
+      "group": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Value of the group_by column (null means missing).",
+       "title": "Group"
+      },
+      "n": {
+       "title": "N",
+       "type": "integer"
+      },
+      "accuracy_strict": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Accuracy Strict"
+      },
+      "accuracy_answer_forced": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Accuracy Answer Forced"
+      }
+     },
+     "required": [
+      "group",
+      "n",
+      "accuracy_strict",
+      "accuracy_answer_forced"
+     ],
+     "title": "BreakdownRow",
+     "type": "object"
+    }
+   },
+   "properties": {
+    "collection": {
+     "title": "Collection",
+     "type": "string"
+    },
+    "group_by": {
+     "enum": [
+      "model",
+      "subject",
+      "level",
+      "token_budget",
+      "finish_reason",
+      "dataset"
+     ],
+     "title": "Group By",
+     "type": "string"
+    },
+    "rows": {
+     "items": {
+      "$ref": "#/$defs/BreakdownRow"
+     },
+     "title": "Rows",
+     "type": "array"
+    },
+    "source": {
+     "const": "duckdb",
+     "default": "duckdb",
+     "title": "Source",
+     "type": "string"
+    },
+    "notes": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Notes",
+     "type": "array"
+    },
+    "citation": {
+     "title": "Citation",
+     "type": "string"
+    }
+   },
+   "required": [
+    "collection",
+    "group_by",
+    "rows",
+    "notes",
+    "citation"
+   ],
+   "title": "AccuracyBreakdownOutput",
+   "type": "object"
+  },
+  "annotations": {
+   "readOnlyHint": true,
+   "destructiveHint": false,
+   "idempotentHint": true,
+   "openWorldHint": true
+  }
+ },
+ {
+  "name": "check_answer",
+  "description": "Check an answer with the paper's deterministic math checker (math_verify, symbolic equivalence).\n\n        Use it to confirm a suspected mis-grade or to test an edited answer. Correct if the boxed answer\n        matches any element of the gold list.",
+  "inputSchema": {
+   "properties": {
+    "response": {
+     "description": "Text containing the final answer in \\boxed{...} (a whole trace works; the last boxed answer is used). Without \\boxed{...} the result is reason='no_boxed_answer'.",
+     "maxLength": 200000,
+     "minLength": 1,
+     "title": "Response",
+     "type": "string"
+    },
+    "gt_answer": {
+     "description": "Gold answer exactly as returned in gt_answer (e.g. '[106]'), or a LaTeX answer.",
+     "maxLength": 10000,
+     "minLength": 1,
+     "title": "Gt Answer",
+     "type": "string"
+    },
+    "timeout_s": {
+     "default": 10,
+     "description": "Hard time limit in seconds (1-10).",
+     "maximum": 10,
+     "minimum": 1,
+     "title": "Timeout S",
+     "type": "number"
+    }
+   },
+   "required": [
+    "response",
+    "gt_answer"
+   ],
+   "title": "check_answerArguments",
+   "type": "object"
+  },
+  "outputSchema": {
+   "properties": {
+    "correct": {
+     "title": "Correct",
+     "type": "boolean"
+    },
+    "extracted_answer": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "description": "The answer parsed from the last \\boxed{...}, if any.",
+     "title": "Extracted Answer"
+    },
+    "gt_used": {
+     "description": "The normalised gold answers the response was checked against.",
+     "items": {
+      "type": "string"
+     },
+     "title": "Gt Used",
+     "type": "array"
+    },
+    "reason": {
+     "enum": [
+      "ok",
+      "no_boxed_answer",
+      "unparseable",
+      "timeout"
+     ],
+     "title": "Reason",
+     "type": "string"
+    }
+   },
+   "required": [
+    "correct",
+    "extracted_answer",
+    "gt_used",
+    "reason"
+   ],
+   "title": "CheckAnswerOutput",
+   "type": "object"
+  },
+  "annotations": {
+   "readOnlyHint": true,
+   "destructiveHint": false,
+   "idempotentHint": true,
+   "openWorldHint": false
+  }
+ },
+ {
+  "name": "find_traces",
+  "description": "Find reasoning traces by model, correctness, subject, level, token budget or finish reason.\n\n        Returns metadata and a question preview per trace, not the trace itself: pass row_idx to get_trace\n        to read one. Use correct=false to find failures.",
+  "inputSchema": {
+   "properties": {
+    "collection": {
+     "description": "Collection name from list_collections.",
+     "enum": [
+      "eval_aime",
+      "eval_competition_math",
+      "eval_deepmath",
+      "eval_gsm_plus",
+      "eval_math500",
+      "eval_math_perturb",
+      "eval_math_test",
+      "eval_math_train_l1_3_indist",
+      "eval_putnam_axiom"
+     ],
+     "title": "Collection",
+     "type": "string"
+    },
+    "model": {
+     "anyOf": [
+      {
+       "enum": [
+        "qwen3-1.7b",
+        "qwen3-4b",
+        "qwen3-8b",
+        "qwen3-14b"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Model that wrote the trace (exact lowercase id).",
+     "title": "Model"
+    },
+    "correct": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "True for correct traces, false for failed ones (the correct_strict column).",
+     "title": "Correct"
+    },
+    "subject": {
+     "anyOf": [
+      {
+       "maxLength": 200,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Exact subject value, e.g. 'Algebra'. Invalid values list the allowed ones.",
+     "title": "Subject"
+    },
+    "level": {
+     "anyOf": [
+      {
+       "maxLength": 200,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Exact level value, e.g. 'Level 5'. Some collections have no levels.",
+     "title": "Level"
+    },
+    "token_budget": {
+     "anyOf": [
+      {
+       "maximum": 10000000,
+       "minimum": 1,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Exact generation token budget, e.g. 4096.",
+     "title": "Token Budget"
+    },
+    "finish_reason": {
+     "anyOf": [
+      {
+       "maxLength": 200,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Exact finish_reason value. Invalid values list the allowed ones.",
+     "title": "Finish Reason"
+    },
+    "text_query": {
+     "anyOf": [
+      {
+       "maxLength": 200,
+       "minLength": 1,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Full-text search over the text columns. Cannot be combined with the other filters.",
+     "title": "Text Query"
+    },
+    "limit": {
+     "default": 10,
+     "description": "Rows per page (1-20). Keep it small.",
+     "maximum": 20,
+     "minimum": 1,
+     "title": "Limit",
+     "type": "integer"
+    },
+    "offset": {
+     "default": 0,
+     "description": "Rows to skip; use next_offset to page.",
+     "maximum": 10000000,
+     "minimum": 0,
+     "title": "Offset",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "collection"
+   ],
+   "title": "find_tracesArguments",
+   "type": "object"
+  },
+  "outputSchema": {
+   "$defs": {
+    "TraceMeta": {
+     "properties": {
+      "row_idx": {
+       "title": "Row Idx",
+       "type": "integer"
+      },
+      "problem_id": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Problem Id"
+      },
+      "model": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Model"
+      },
+      "dataset": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Dataset"
+      },
+      "subject": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Subject"
+      },
+      "level": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Level"
+      },
+      "difficulty": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Difficulty"
+      },
+      "token_budget": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Token Budget"
+      },
+      "correct_strict": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Correct Strict"
+      },
+      "finish_reason": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Finish Reason"
+      },
+      "predicted_answer": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Predicted Answer"
+      },
+      "gt_answer": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Gt Answer"
+      },
+      "question_preview": {
+       "description": "First 300 characters of the question.",
+       "title": "Question Preview",
+       "type": "string"
+      },
+      "trace_chars": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "description": "Length of the full trace in characters; null if the upstream cell was truncated.",
+       "title": "Trace Chars"
+      }
+     },
+     "required": [
+      "row_idx",
+      "question_preview"
+     ],
+     "title": "TraceMeta",
+     "type": "object"
+    }
+   },
+   "properties": {
+    "collection": {
+     "title": "Collection",
+     "type": "string"
+    },
+    "total_matches": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Total rows matching the filters, if reported.",
+     "title": "Total Matches"
+    },
+    "offset": {
+     "title": "Offset",
+     "type": "integer"
+    },
+    "items": {
+     "items": {
+      "$ref": "#/$defs/TraceMeta"
+     },
+     "title": "Items",
+     "type": "array"
+    },
+    "next_offset": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "description": "Pass as offset to get the next page; null when there are no more.",
+     "title": "Next Offset"
+    },
+    "partial": {
+     "description": "True if the upstream index covers only part of the collection.",
+     "title": "Partial",
+     "type": "boolean"
+    },
+    "source": {
+     "description": "Where the page came from: the dataset viewer, or DuckDB over the parquet files when the viewer was failing.",
+     "enum": [
+      "dataset_viewer",
+      "parquet"
+     ],
+     "title": "Source",
+     "type": "string"
+    },
+    "notes": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Notes",
+     "type": "array"
+    },
+    "citation": {
+     "title": "Citation",
+     "type": "string"
+    }
+   },
+   "required": [
+    "collection",
+    "offset",
+    "items",
+    "next_offset",
+    "partial",
+    "source",
+    "notes",
+    "citation"
+   ],
+   "title": "FindTracesOutput",
+   "type": "object"
+  },
+  "annotations": {
+   "readOnlyHint": true,
+   "destructiveHint": false,
+   "idempotentHint": true,
+   "openWorldHint": true
+  }
+ },
+ {
+  "name": "get_trace",
+  "description": "Read one reasoning trace: its metadata plus the tail, the steps or the start of the text.\n\n        Prefer view='tail'. Use view='steps' when you need to locate the step where the reasoning goes wrong;\n        middle steps are dropped to fit max_chars and listed in dropped_step_indices.",
+  "inputSchema": {
+   "properties": {
+    "collection": {
+     "description": "Collection name from list_collections.",
+     "enum": [
+      "eval_aime",
+      "eval_competition_math",
+      "eval_deepmath",
+      "eval_gsm_plus",
+      "eval_math500",
+      "eval_math_perturb",
+      "eval_math_test",
+      "eval_math_train_l1_3_indist",
+      "eval_putnam_axiom"
+     ],
+     "title": "Collection",
+     "type": "string"
+    },
+    "row_idx": {
+     "description": "row_idx of the trace, as returned by find_traces.",
+     "minimum": 0,
+     "title": "Row Idx",
+     "type": "integer"
+    },
+    "view": {
+     "default": "tail",
+     "description": "'tail' (default): the last max_chars characters, where the answer is. 'steps': the trace split into the paper's steps. 'full': the trace from the start, cut at max_chars.",
+     "enum": [
+      "full",
+      "tail",
+      "steps"
+     ],
+     "title": "View",
+     "type": "string"
+    },
+    "max_chars": {
+     "default": 6000,
+     "description": "Maximum characters of trace text to return (500-40000).",
+     "maximum": 40000,
+     "minimum": 500,
+     "title": "Max Chars",
+     "type": "integer"
+    },
+    "step_tokens": {
+     "default": 400,
+     "description": "Minimum tokens per step for view='steps'; the paper uses 400.",
+     "maximum": 2000,
+     "minimum": 100,
+     "title": "Step Tokens",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "collection",
+    "row_idx"
+   ],
+   "title": "get_traceArguments",
+   "type": "object"
+  },
+  "outputSchema": {
+   "$defs": {
+    "Step": {
+     "properties": {
+      "index": {
+       "title": "Index",
+       "type": "integer"
+      },
+      "start_char": {
+       "title": "Start Char",
+       "type": "integer"
+      },
+      "end_char": {
+       "title": "End Char",
+       "type": "integer"
+      },
+      "text": {
+       "title": "Text",
+       "type": "string"
+      }
+     },
+     "required": [
+      "index",
+      "start_char",
+      "end_char",
+      "text"
+     ],
+     "title": "Step",
+     "type": "object"
+    },
+    "TraceMeta": {
+     "properties": {
+      "row_idx": {
+       "title": "Row Idx",
+       "type": "integer"
+      },
+      "problem_id": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Problem Id"
+      },
+      "model": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Model"
+      },
+      "dataset": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Dataset"
+      },
+      "subject": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Subject"
+      },
+      "level": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Level"
+      },
+      "difficulty": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Difficulty"
+      },
+      "token_budget": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Token Budget"
+      },
+      "correct_strict": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Correct Strict"
+      },
+      "finish_reason": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Finish Reason"
+      },
+      "predicted_answer": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Predicted Answer"
+      },
+      "gt_answer": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Gt Answer"
+      },
+      "question_preview": {
+       "description": "First 300 characters of the question.",
+       "title": "Question Preview",
+       "type": "string"
+      },
+      "trace_chars": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "description": "Length of the full trace in characters; null if the upstream cell was truncated.",
+       "title": "Trace Chars"
+      }
+     },
+     "required": [
+      "row_idx",
+      "question_preview"
+     ],
+     "title": "TraceMeta",
+     "type": "object"
+    }
+   },
+   "properties": {
+    "meta": {
+     "$ref": "#/$defs/TraceMeta"
+    },
+    "view": {
+     "enum": [
+      "full",
+      "tail",
+      "steps"
+     ],
+     "title": "View",
+     "type": "string"
+    },
+    "text": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "description": "Trace text for view='full' or 'tail'; null for 'steps'.",
+     "title": "Text"
+    },
+    "steps": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/$defs/Step"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "description": "Steps for view='steps'; null otherwise.",
+     "title": "Steps"
+    },
+    "total_steps": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Number of steps in the whole trace (view='steps').",
+     "title": "Total Steps"
+    },
+    "truncated": {
+     "description": "True if any text was cut to fit max_chars.",
+     "title": "Truncated",
+     "type": "boolean"
+    },
+    "dropped_step_indices": {
+     "description": "Indices of whole steps left out to fit max_chars.",
+     "items": {
+      "type": "integer"
+     },
+     "title": "Dropped Step Indices",
+     "type": "array"
+    },
+    "notes": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Notes",
+     "type": "array"
+    },
+    "citation": {
+     "title": "Citation",
+     "type": "string"
+    }
+   },
+   "required": [
+    "meta",
+    "view",
+    "text",
+    "steps",
+    "truncated",
+    "dropped_step_indices",
+    "citation"
+   ],
+   "title": "GetTraceOutput",
+   "type": "object"
+  },
+  "annotations": {
+   "readOnlyHint": true,
+   "destructiveHint": false,
+   "idempotentHint": true,
+   "openWorldHint": true
+  }
+ },
+ {
+  "name": "list_collections",
+  "description": "List the nine dataset collections (configs) with row counts, columns and which tools work on each.\n\n        Call this first. Collection names are the `collection` argument of every other tool.",
+  "inputSchema": {
+   "properties": {},
+   "title": "list_collectionsArguments",
+   "type": "object"
+  },
+  "outputSchema": {
+   "$defs": {
+    "CollectionInfo": {
+     "properties": {
+      "name": {
+       "title": "Name",
+       "type": "string"
+      },
+      "rows": {
+       "title": "Rows",
+       "type": "integer"
+      },
+      "columns": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Columns",
+       "type": "array"
+      },
+      "filter_supported": {
+       "description": "find_traces with structured filters works on this collection.",
+       "title": "Filter Supported",
+       "type": "boolean"
+      },
+      "search_supported": {
+       "description": "find_traces with text_query works on this collection.",
+       "title": "Search Supported",
+       "type": "boolean"
+      },
+      "rows_supported": {
+       "description": "get_trace can fetch any row_idx. If false, get_trace serves only rows that find_traces returned in this session.",
+       "title": "Rows Supported",
+       "type": "boolean"
+      },
+      "notes": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Notes",
+       "type": "array"
+      }
+     },
+     "required": [
+      "name",
+      "rows",
+      "columns",
+      "filter_supported",
+      "search_supported",
+      "rows_supported",
+      "notes"
+     ],
+     "title": "CollectionInfo",
+     "type": "object"
+    }
+   },
+   "properties": {
+    "collections": {
+     "items": {
+      "$ref": "#/$defs/CollectionInfo"
+     },
+     "title": "Collections",
+     "type": "array"
+    },
+    "citation": {
+     "title": "Citation",
+     "type": "string"
+    }
+   },
+   "required": [
+    "collections",
+    "citation"
+   ],
+   "title": "ListCollectionsOutput",
+   "type": "object"
+  },
+  "annotations": {
+   "readOnlyHint": true,
+   "destructiveHint": false,
+   "idempotentHint": true,
+   "openWorldHint": true
+  }
+ }
+]

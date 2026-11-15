@@ -1,0 +1,116 @@
+{
+  "dry_run": true,
+  "model": "scripted fake LLM",
+  "date_utc": "2026-11-14T22:22:48+00:00",
+  "summary": {
+    "tool_selection": "2/2",
+    "arguments": "2/2",
+    "refuse": "0/0",
+    "passed": "2/2"
+  },
+  "tasks": [
+    {
+      "id": "t06",
+      "kind": "tool",
+      "task": "Which collections does this dataset have, and how many rows is each?",
+      "tool_score": 1.0,
+      "tool_pass": true,
+      "args_pass": true,
+      "arg_detail": {},
+      "reason": "Correct ordering: all expected tools ['list_collections'] were called in the correct order.",
+      "passed": true,
+      "error": null,
+      "tool_calls": [
+        {
+          "name": "list_collections",
+          "args": {},
+          "is_error": false
+        }
+      ],
+      "final_answer": "(scripted answer)",
+      "transcript": [
+        {
+          "role": "user",
+          "content": "Which collections does this dataset have, and how many rows is each?"
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "fake0",
+              "type": "function",
+              "function": {
+                "name": "list_collections",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "fake0",
+          "content": "{\n  \"collections\": [\n    {\n      \"name\": \"eval_aime\",\n      \"rows\": 1200,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": true,\n      \"notes\": [\n        \"/rows: ok in 0.4 s\",\n        \"/filter: ok in 30.2 s\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"level is empty in this collection\"\n      ]\n    },\n    {\n      \"name\": \"eval_competition_math\",\n      \"rows\": 2008,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": true,\n      \"notes\": [\n        \"/rows: ok in 0.9 s\",\n        \"/filter: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\"\n      ]\n    },\n    {\n      \"name\": \"eval_deepmath\",\n      \"rows\": 1235860,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\",\n        \"source_shard\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": false,\n      \"notes\": [\n        \"/rows: unsupported: HTTP 500 {\\\"error\\\":\\\"Parquet error: Scan size limit exceeded: attempted to read 892371460 bytes, limit is 30000\",\n        \"/filter: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/statistics is partial (309066 of 1235860 rows)\",\n        \"subject is empty in this collection\",\n        \"level is empty in this collection\"\n      ]\n    },\n    {\n      \"name\": \"eval_gsm_plus\",\n      \"rows\": 38400,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": true,\n      \"notes\": [\n        \"/rows: ok in 5.2 s\",\n        \"/filter: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"level is empty in this collection\"\n      ]\n    },\n    {\n      \"name\": \"eval_math500\",\n      \"rows\": 8000,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": true,\n      \"notes\": [\n        \"/rows: ok in 0.6 s\",\n        \"/filter: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\"\n      ]\n    },\n    {\n      \"name\": \"eval_math_perturb\",\n      \"rows\": 13392,\n      \"columns\": [\n        \"model\",\n        \"dataset\",\n        \"token_budget\",\n        \"problem_id\",\n        \"question\",\n        \"gt_answer\",\n        \"level\",\n        \"difficulty\",\n        \"variant\",\n        \"subject\",\n        \"predicted_answer\",\n        \"correct_strict\",\n        \"correct_answer_forced\",\n        \"answer_forced\",\n        \"finish_reason\",\n        \"decoding\",\n        \"trace\"\n      ],\n      \"filter_supported\": true,\n      \"search_supported\": true,\n      \"rows_supported\": true,\n      \"notes\": [\n        \"/rows: ok in 6.5 s\",\n        \"/filter: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\",\n        \"/search: failed during probing (transient): HTTP 500 {\\\"error\\\":\\\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,\"\n      ]\n    },\n    {\n      \"name\": \"eval_math_test\",\n \n[truncated]"
+        },
+        {
+          "role": "assistant",
+          "content": "(scripted answer)"
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "kind": "tool",
+      "task": "Does this response match the gold answer? Response: \"So the total is \\boxed{106}.\" Gold: '[106]'.",
+      "tool_score": 1.0,
+      "tool_pass": true,
+      "args_pass": true,
+      "arg_detail": {
+        "check_answer": true
+      },
+      "reason": "Correct ordering: all expected tools ['check_answer'] were called in the correct order.",
+      "passed": true,
+      "error": null,
+      "tool_calls": [
+        {
+          "name": "check_answer",
+          "args": {
+            "gt_answer": "[106]",
+            "response": "\\boxed{106}"
+          },
+          "is_error": false
+        }
+      ],
+      "final_answer": "(scripted answer)",
+      "transcript": [
+        {
+          "role": "user",
+          "content": "Does this response match the gold answer? Response: \"So the total is \\boxed{106}.\" Gold: '[106]'."
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "fake0",
+              "type": "function",
+              "function": {
+                "name": "check_answer",
+                "arguments": "{\"gt_answer\": \"[106]\", \"response\": \"\\\\boxed{106}\"}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "fake0",
+          "content": "{\n  \"correct\": true,\n  \"extracted_answer\": \"106\",\n  \"gt_used\": [\n    \"\\\\boxed{106}\"\n  ],\n  \"reason\": \"ok\"\n}"
+        },
+        {
+          "role": "assistant",
+          "content": "(scripted answer)"
+        }
+      ]
+    }
+  ]
+}

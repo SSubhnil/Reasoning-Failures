@@ -1,0 +1,86 @@
+name: mcp
+
+on:
+  push:
+    paths:
+      - "sst_mcp/**"
+      - "tests/mcp_server/**"
+      - "skills/**"
+      - "evals/**"
+      - "scripts/*mcp*.py"
+      - "scripts/lint_skill.py"
+      - "requirements-mcp*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/mcp.yml"
+  pull_request:
+    paths:
+      - "sst_mcp/**"
+      - "tests/mcp_server/**"
+      - "skills/**"
+      - "evals/**"
+      - "scripts/*mcp*.py"
+      - "scripts/lint_skill.py"
+      - "requirements-mcp*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/mcp.yml"
+  workflow_dispatch:
+    inputs:
+      eval:
+        description: "Run the tool-use eval"
+        type: boolean
+        default: false
+      model:
+        description: "OpenRouter model id for the eval"
+        type: string
+        default: "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-mcp*.txt
+      - run: pip install -r requirements-mcp-dev.txt
+      - run: pip install --no-deps -e .
+      - run: ruff check sst_mcp tests/mcp_server evals scripts/build_mcp_enums.py scripts/record_mcp_fixtures.py scripts/smoke_mcp_http.py scripts/lint_skill.py
+      - run: pytest tests/mcp_server -q --cov=sst_mcp --cov-report=term-missing --cov-fail-under=85
+        env:
+          HF_HUB_OFFLINE: "1"
+
+  skill-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/lint_skill.py
+
+  eval:
+    if: github.event_name == 'workflow_dispatch' && inputs.eval
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-mcp*.txt
+      - run: pip install -r requirements-mcp-eval.txt
+      - run: pip install --no-deps -e .
+      - run: python evals/run_tool_eval.py --model "${{ inputs.model }}"
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: evals/results/

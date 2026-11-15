@@ -1,0 +1,12 @@
+{
+ "endpoint": "rows",
+ "params": {
+  "config": "eval_deepmath",
+  "offset": 5,
+  "length": 1
+ },
+ "status": 500,
+ "body": {
+  "error": "Parquet error: Scan size limit exceeded: attempted to read 892371460 bytes, limit is 300000000 bytes\n\nMake sure that\n\n1. the Parquet files contain a page index to enable random access without loading entire row groups2. otherwise use smaller row-group sizes when serializing the Parquet files\n"
+ }
+}

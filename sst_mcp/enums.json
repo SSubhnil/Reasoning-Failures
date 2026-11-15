@@ -1,0 +1,1078 @@
+{
+ "dataset": "ssubhnil/Reasoning-Failures",
+ "built": "2026-11-14",
+ "collections": {
+  "eval_aime": {
+   "rows": 1200,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "aime"
+    ],
+    "level": [],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384,
+     32768
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "aime"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 0.4 s",
+    "/filter: ok in 30.2 s",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "level is empty in this collection"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 0.4,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 30.2,
+        "body": ""
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_competition_math": {
+   "rows": 2008,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-4b"
+    ],
+    "subject": [
+     "Algebra",
+     "Counting & Probability",
+     "Geometry",
+     "Intermediate Algebra",
+     "Number Theory",
+     "Prealgebra",
+     "Precalculus"
+    ],
+    "level": [
+     "Level 1",
+     "Level 2",
+     "Level 3",
+     "Level 4",
+     "Level 5"
+    ],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "competition_math"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 0.9 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 0.9,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_deepmath": {
+   "rows": 1235860,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace",
+    "source_shard"
+   ],
+   "values": {
+    "model": [
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [],
+    "level": [],
+    "token_budget": [
+     4096,
+     8192,
+     16384,
+     32768
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "deepmath"
+    ]
+   },
+   "rows_supported": false,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: unsupported: HTTP 500 {\"error\":\"Parquet error: Scan size limit exceeded: attempted to read 892371460 bytes, limit is 30000",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/statistics is partial (309066 of 1235860 rows)",
+    "subject is empty in this collection",
+    "level is empty in this collection"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": false,
+      "permanent_failure": true,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 0.2,
+        "body": "{\"error\":\"Parquet error: Scan size limit exceeded: attempted to read 892371460 bytes, limit is 300000000 bytes\\n\\nMake sure that\\n\\n1. the Parquet files contain"
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_gsm_plus": {
+   "rows": 38400,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "gsm"
+    ],
+    "level": [],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "gsm_plus"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 5.2 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "level is empty in this collection"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 5.2,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_math500": {
+   "rows": 8000,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "Algebra",
+     "Counting & Probability",
+     "Geometry",
+     "Intermediate Algebra",
+     "Number Theory",
+     "Prealgebra",
+     "Precalculus"
+    ],
+    "level": [
+     "Level 1",
+     "Level 2",
+     "Level 3",
+     "Level 4",
+     "Level 5"
+    ],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "math500"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 0.6 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 0.6,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.2,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_math_perturb": {
+   "rows": 13392,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "Algebra",
+     "Counting & Probability",
+     "Geometry",
+     "Intermediate Algebra",
+     "Number Theory",
+     "Prealgebra",
+     "Precalculus"
+    ],
+    "level": [
+     "Level 5"
+    ],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "math_perturb"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 6.5 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 6.5,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.4,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_math_test": {
+   "rows": 70000,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "Algebra",
+     "Counting & Probability",
+     "Geometry",
+     "Intermediate Algebra",
+     "Number Theory",
+     "Prealgebra",
+     "Precalculus",
+     "algebra",
+     "counting_and_probability",
+     "geometry",
+     "intermediate_algebra",
+     "number_theory",
+     "prealgebra",
+     "precalculus"
+    ],
+    "level": [
+     "Level 1",
+     "Level 2",
+     "Level 3",
+     "Level 4",
+     "Level 5"
+    ],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "math_test"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 26.7 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 26.7,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_math_train_l1_3_indist": {
+   "rows": 36528,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "Algebra",
+     "Counting & Probability",
+     "Geometry",
+     "Intermediate Algebra",
+     "Number Theory",
+     "Prealgebra",
+     "Precalculus"
+    ],
+    "level": [
+     "Level 1",
+     "Level 2",
+     "Level 3"
+    ],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "math_train_l1_3_indist"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 0.8 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 0.8,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "eval_putnam_axiom": {
+   "rows": 12000,
+   "columns": [
+    "model",
+    "dataset",
+    "token_budget",
+    "problem_id",
+    "question",
+    "gt_answer",
+    "level",
+    "difficulty",
+    "variant",
+    "subject",
+    "predicted_answer",
+    "correct_strict",
+    "correct_answer_forced",
+    "answer_forced",
+    "finish_reason",
+    "decoding",
+    "trace"
+   ],
+   "values": {
+    "model": [
+     "qwen3-1.7b",
+     "qwen3-14b",
+     "qwen3-4b",
+     "qwen3-8b"
+    ],
+    "subject": [
+     "putnam"
+    ],
+    "level": [],
+    "token_budget": [
+     2048,
+     4096,
+     8192,
+     16384,
+     32768
+    ],
+    "finish_reason": [
+     "end_think",
+     "missing_end_think"
+    ],
+    "dataset": [
+     "putnam_axiom"
+    ]
+   },
+   "rows_supported": true,
+   "filter_supported": true,
+   "search_supported": true,
+   "notes": [
+    "/rows: ok in 8.0 s",
+    "/filter: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "/search: failed during probing (transient): HTTP 500 {\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later,",
+    "level is empty in this collection"
+   ],
+   "probe": {
+    "date": "2026-11-14",
+    "results": {
+     "rows": {
+      "ok": true,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 200,
+        "latency_s": 8.0,
+        "body": ""
+       }
+      ]
+     },
+     "filter": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     },
+     "search": {
+      "ok": false,
+      "permanent_failure": false,
+      "attempts": [
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       },
+       {
+        "status": 500,
+        "latency_s": 10.1,
+        "body": "{\"error\":\"Authentication check on the Hugging Face Hub failed or timed out. Please try again later, it's a temporary internal issue.\"}"
+       }
+      ]
+     }
+    }
+   }
+  }
+ }
+}
