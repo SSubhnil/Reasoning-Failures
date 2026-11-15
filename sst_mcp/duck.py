@@ -1,10 +1,11 @@
-"""DuckDB queries over the dataset's auto-converted parquet (accuracy breakdowns and enum building)."""
+"""DuckDB queries over the dataset's auto-converted parquet (breakdowns, the find_traces fallback, enum building)."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import os
+import re
 import threading
 import time
 from pathlib import Path
@@ -13,6 +14,22 @@ from typing import Any
 from .models import DATASET
 
 GROUP_COLUMNS = ("model", "subject", "level", "token_budget", "finish_reason", "dataset")
+FIND_FILTERS = ("model", "correct_strict", "subject", "level", "token_budget", "finish_reason")
+FIND_COLUMNS = (
+    "problem_id",
+    "model",
+    "dataset",
+    "subject",
+    "level",
+    "difficulty",
+    "token_budget",
+    "correct_strict",
+    "finish_reason",
+    "predicted_answer",
+    "gt_answer",
+    "question",
+    "trace",
+)
 
 
 class QueryTimeout(RuntimeError):
@@ -39,6 +56,7 @@ class DuckRunner:
         self.timeout_s = timeout_s
         self._setup_lock = threading.Lock()
         self._installed = False
+        self._offsets: dict[str, dict[str, int]] = {}
 
     def url(self, collection: str) -> str:
         return self.source.format(collection=collection) if self.source else parquet_url(collection)
@@ -59,7 +77,14 @@ class DuckRunner:
                 con.execute("CREATE SECRET hf_token (TYPE huggingface, TOKEN '" + token.replace("'", "''") + "')")
         return con
 
-    def query(self, sql: str, params: list[Any] | None = None) -> list[tuple]:
+    def query(self, sql: str, params: list[Any] | None = None, timeout_s: float | None = None) -> list[tuple]:
+        return self.queries([(sql, params)], timeout_s)[0]
+
+    def queries(
+        self, statements: list[tuple[str, list[Any] | None]], timeout_s: float | None = None
+    ) -> list[list[tuple]]:
+        """Run several statements on one connection under one time limit."""
+        limit = self.timeout_s if timeout_s is None else timeout_s
         con = self._connect()
         timed_out = threading.Event()
 
@@ -67,17 +92,82 @@ class DuckRunner:
             timed_out.set()
             con.interrupt()
 
-        timer = threading.Timer(self.timeout_s, _interrupt)
+        timer = threading.Timer(limit, _interrupt)
         timer.start()
         try:
-            return con.execute(sql, params or []).fetchall()
+            return [con.execute(sql, params or []).fetchall() for sql, params in statements]
         except Exception:
             if timed_out.is_set():
-                raise QueryTimeout(f"query exceeded {self.timeout_s:g} s") from None
+                raise QueryTimeout(f"query exceeded {limit:g} s") from None
             raise
         finally:
             timer.cancel()
             con.close()
+
+    def file_offsets(self, collection: str) -> dict[str, int]:
+        """Global row index of the first row in each parquet file, from the file footers only.
+
+        The viewer numbers rows across the files in name order (0000.parquet, 0001.parquet, ...)."""
+        url = self.url(collection)
+        if url not in self._offsets:
+            rows = self.query(f"SELECT file_name, num_rows FROM parquet_file_metadata('{url}') ORDER BY file_name")
+            offsets, start = {}, 0
+            for name, n in rows:
+                offsets[name] = start
+                start += int(n)
+            self._offsets[url] = offsets
+        return self._offsets[url]
+
+    def find_rows(
+        self,
+        collection: str,
+        filters: dict[str, Any],
+        offset: int,
+        limit: int,
+        text_query: str | None = None,
+        timeout_s: float | None = None,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """One page of matching rows in row order, shaped like the viewer's /filter rows, and the match count.
+
+        text_query is a case-insensitive substring match on the question and the trace, not the viewer's
+        full-text search."""
+        conds, params = [], []
+        for column, value in filters.items():
+            if value is None:
+                continue
+            if column not in FIND_FILTERS:
+                raise ValueError(f"cannot filter on {column!r}")
+            conds.append(f'"{column}" = ?')
+            params.append(value)
+        if text_query is not None:
+            pattern = "%" + re.sub(r"([\\%_])", r"\\\1", text_query) + "%"
+            conds.append("(\"question\" ILIKE ? ESCAPE '\\' OR \"trace\" ILIKE ? ESCAPE '\\')")
+            params += [pattern, pattern]
+        where = " WHERE " + " AND ".join(conds) if conds else ""
+        url = self.url(collection)
+        columns = ", ".join(f'"{c}"' for c in FIND_COLUMNS)
+        offsets = self.file_offsets(collection)
+        (count,), page = self.queries(
+            [
+                (f"SELECT count(*) FROM read_parquet('{url}'){where}", params),
+                (
+                    f"SELECT filename, file_row_number, {columns} "
+                    f"FROM read_parquet('{url}', filename=true, file_row_number=true){where} "
+                    "ORDER BY filename, file_row_number LIMIT ? OFFSET ?",
+                    [*params, int(limit), int(offset)],
+                ),
+            ],
+            timeout_s,
+        )
+        rows = [
+            {
+                "row_idx": offsets[filename] + int(file_row),
+                "row": dict(zip(FIND_COLUMNS, values, strict=True)),
+                "truncated_cells": [],
+            }
+            for filename, file_row, *values in page
+        ]
+        return rows, int(count[0])
 
     def breakdown(
         self, collection: str, group_by: str, model: str | None = None, token_budget: int | None = None

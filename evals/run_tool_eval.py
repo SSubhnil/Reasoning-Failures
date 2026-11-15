@@ -301,7 +301,8 @@ async def amain(args: argparse.Namespace) -> int:
         sys.exit("no tasks selected")
     llm: Any = ScriptedLLM(tasks) if args.dry_run else OpenRouterLLM(args.model)
     system = load_system_prompt()
-    params = StdioServerParameters(command=sys.executable, args=["-m", "sst_mcp"], env={**os.environ}, cwd=str(ROOT))
+    server_env = {k: v for k, v in os.environ.items() if k != "OPENROUTER_API_KEY"}  # the server needs no LLM key
+    params = StdioServerParameters(command=sys.executable, args=["-m", "sst_mcp"], env=server_env, cwd=str(ROOT))
     results = []
     with open(os.devnull, "w") as errlog:
         async with stdio_client(params, errlog=errlog) as (read, write), ClientSession(read, write) as session:

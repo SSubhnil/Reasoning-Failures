@@ -19,7 +19,8 @@ uv pip install --python .venv-mcp/bin/python --no-deps -e .
 ```
 
 Set `HF_TOKEN` to a Hugging Face token with read scope. The server works without one, but unauthenticated
-requests to the dataset viewer fail much more often (see Limits).
+requests are rate-limited sooner. A token does not prevent the dataset viewer's `/filter` failures (see Limits);
+`find_traces` falls back to the parquet files when the viewer fails.
 
 ## Connect
 
@@ -64,6 +65,13 @@ Details:
 - **Filters.** `find_traces` builds the viewer's `where` clause only from validated, typed values: identifiers in
   double quotes, string literals with single quotes doubled, integers as bare numbers. No raw SQL is accepted.
   `text_query` uses the viewer's full-text search, which takes no filters, so it cannot be combined with them.
+- **Fallback.** If `/filter` or `/search` fails after retries, or gives no answer within 20 s, `find_traces` runs
+  the same query on the parquet files with DuckDB and sets `source="parquet"`; for the next 5 minutes it goes
+  to parquet directly. The rows, `row_idx` values and order are the same as the viewer's (checked against `/rows`
+  on 15 Nov 2026), and the traces come with them, so `get_trace` serves those rows without another request,
+  on eval_deepmath too. One difference, stated in `notes`: `text_query` becomes a case-insensitive substring
+  match on the question and the trace, not the viewer's ranked full-text search. A 4xx answer from the viewer
+  means the request itself was refused, so it is reported, not retried on parquet.
 - **Steps.** `view="steps"` splits the trace with `merged_step_char_spans` from `sst/shared/extractors.py` and the
   Qwen3 tokenizer (`Qwen/Qwen3-4B`, shared by all Qwen3 sizes), so with `step_tokens=400` the steps match the
   paper. When the steps do not fit `max_chars`, the first two and the last step are kept and middle steps are
@@ -132,6 +140,11 @@ What this means for the tools:
 - `/rows` at a high offset can be slow (26.7 s at offset 0 on eval_math_test in this probe; about 32 s was seen
   earlier at a high offset). The read timeout is 60 s per attempt.
 - `/search` takes no filters, so `text_query` cannot be combined with the structured filters.
+- **With a token (15 Nov 2026, 10:39 to 11:00 UTC).** The token was valid (`whoami` 200), but `/filter` still
+  returned the "Authentication check" 500 or a 502 on eight attempts in a row, and answered `openai/gsm8k` with
+  the same 500, so the failures are on the viewer's side. Some later `/filter` calls succeeded after 35 to 60 s.
+  `/search` succeeded once in three tries. The parquet fallback (Details) answered in 2 to 5 s on eval_aime,
+  eval_math500, eval_math_test and eval_putnam_axiom, and in 16 to 49 s on eval_deepmath (limit 45 s).
 - `level` is empty in eval_aime, eval_deepmath, eval_gsm_plus and eval_putnam_axiom; `subject` is empty in
   eval_deepmath. eval_deepmath has no `qwen3-1.7b` rows and eval_competition_math has only `qwen3-1.7b` and
   `qwen3-4b`. `list_collections` and the error messages list the allowed values.

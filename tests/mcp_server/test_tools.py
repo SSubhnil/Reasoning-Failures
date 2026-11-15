@@ -1,5 +1,6 @@
 import copy
 
+import anyio
 import httpx
 import pytest
 import respx
@@ -105,7 +106,16 @@ async def test_find_traces_deepmath_needs_a_filter(call):
 
 async def test_find_traces_search(call):
     with respx.mock(base_url=BASE_URL) as mock:
-        route = mock.get("/search").mock(return_value=httpx.Response(200, json=body("rows_math500")))
+        mock.get("/search").mock(return_value=httpx.Response(200, json=body("search_math500")))
+        res = await call("find_traces", collection="eval_math500", text_query="hexagon", limit=2)
+    out = res.structuredContent
+    assert out["source"] == "dataset_viewer" and out["total_matches"] == 56
+    assert [it["row_idx"] for it in out["items"]] == [4005, 5005] and out["next_offset"] == 2
+
+
+async def test_find_traces_search_query_passed_verbatim(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        route = mock.get("/search").mock(return_value=httpx.Response(200, json=body("search_math500")))
         res = await call("find_traces", collection="eval_math500", text_query="x' OR '1'='1", limit=2)
     assert not res.isError
     assert route.calls[0].request.url.params["query"] == "x' OR '1'='1"
@@ -162,19 +172,109 @@ async def test_find_traces_upstream_retry_then_ok(call):
     assert not res.isError and route.call_count == 3
 
 
-async def test_find_traces_upstream_error(call):
+async def test_find_traces_falls_back_to_parquet(call, services):
     with respx.mock(base_url=BASE_URL) as mock:
         mock.get("/filter").mock(side_effect=[auth_500()] * 3)
+        res = await call("find_traces", collection="eval_aime", model="qwen3-8b", correct=False, limit=2)
+    assert not res.isError, error_text(res)
+    out = res.structuredContent
+    assert out["source"] == "parquet" and not out["partial"]
+    # qwen3-8b rows are the odd i; strict is false when i % 5 == 0, so i = 5, 15, 25, 35
+    assert out["total_matches"] == 4 and [it["row_idx"] for it in out["items"]] == [5, 15]
+    assert out["next_offset"] == 2
+    first = out["items"][0]
+    assert first["problem_id"] == "p5" and first["gt_answer"] == "[5]" and first["trace_chars"] > 0
+    assert any("DuckDB" in n for n in out["notes"])
+    assert services.hub.cached_row("eval_aime", 5) is not None  # get_trace can serve it without /rows
+
+
+async def test_find_traces_parquet_row_idx_spans_files(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.get("/filter").mock(side_effect=[auth_500()] * 3)
+        res = await call("find_traces", collection="eval_aime", model="qwen3-8b", correct=False, offset=2)
+    assert [it["row_idx"] for it in res.structuredContent["items"]] == [25, 35]
+    assert res.structuredContent["next_offset"] is None
+
+
+async def test_find_traces_viewer_skipped_during_cooldown(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        route = mock.get("/filter").mock(side_effect=[auth_500()] * 3)
+        await call("find_traces", collection="eval_aime", correct=False)
+        res = await call("find_traces", collection="eval_math500", correct=True, limit=3)
+    assert route.call_count == 3 and res.structuredContent["source"] == "parquet"
+
+
+async def test_find_traces_viewer_used_again_after_cooldown(call, services):
+    services.viewer_cooldown_s = 0
+    with respx.mock(base_url=BASE_URL) as mock:
+        route = mock.get("/filter").mock(side_effect=[auth_500()] * 3 + [httpx.Response(200, json=body("filter_aime"))])
+        await call("find_traces", collection="eval_aime", correct=False)
+        res = await call("find_traces", collection="eval_aime", correct=False, limit=3)
+    assert route.call_count == 4 and res.structuredContent["source"] == "dataset_viewer"
+
+
+async def test_find_traces_client_error_does_not_fall_back(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        route = mock.get("/filter").mock(return_value=httpx.Response(400, json={"error": "bad where"}))
         res = await call("find_traces", collection="eval_aime", correct=False)
     text = error_text(res)
-    assert "upstream_error" in text and "try again" in text
+    assert "upstream_error" in text and "bad where" in text and route.call_count == 1
+
+
+async def test_find_traces_upstream_error_when_fallback_fails(call):
+    # no local parquet for eval_math_test, so the fallback fails too
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.get("/filter").mock(side_effect=[auth_500()] * 3)
+        res = await call("find_traces", collection="eval_math_test", correct=False)
+    text = error_text(res)
+    assert "upstream_error" in text and "try again" in text and "parquet fallback also failed" in text
 
 
 async def test_find_traces_timeout(call):
     with respx.mock(base_url=BASE_URL) as mock:
         mock.get("/filter").mock(side_effect=httpx.ReadTimeout("slow"))
-        res = await call("find_traces", collection="eval_aime", correct=True)
+        res = await call("find_traces", collection="eval_math_test", correct=True)
     assert "timed out" in error_text(res)
+
+
+async def test_find_traces_slow_viewer_hits_deadline(call, services):
+    services.viewer_deadline_s = 0.2
+
+    async def slow(request):
+        await anyio.sleep(5)
+        return httpx.Response(200, json=body("filter_aime"))
+
+    # the slow request is cancelled before respx records it, hence assert_all_called=False
+    with respx.mock(base_url=BASE_URL, assert_all_called=False) as mock:
+        mock.get("/filter").mock(side_effect=slow)
+        res = await call("find_traces", collection="eval_aime", correct=False, limit=1)
+    assert res.structuredContent["source"] == "parquet"
+
+
+async def test_find_traces_search_falls_back_to_substring(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.get("/search").mock(side_effect=[auth_500()] * 3)
+        res = await call("find_traces", collection="eval_math500", text_query="%")  # literal %, not a wildcard
+    out = res.structuredContent
+    assert out["source"] == "parquet" and [it["row_idx"] for it in out["items"]] == [7]
+    assert any("substring" in n for n in out["notes"])
+
+
+async def test_find_traces_search_fallback_matches_trace_text(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.get("/search").mock(side_effect=[auth_500()] * 3)
+        res = await call("find_traces", collection="eval_math500", text_query="START OF TRACE 12.")
+    assert [it["row_idx"] for it in res.structuredContent["items"]] == [12]
+
+
+async def test_find_traces_deepmath_fallback_keeps_traces_for_get_trace(call):
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.get("/filter").mock(side_effect=[auth_500()] * 3)
+        found = await call("find_traces", collection="eval_deepmath", model="qwen3-4b", correct=True, limit=1)
+        item = found.structuredContent["items"][0]
+        assert item["trace_chars"] > 0
+        res = await call("get_trace", collection="eval_deepmath", row_idx=item["row_idx"], view="tail")
+    assert not res.isError and res.structuredContent["text"].endswith(f"\\boxed{{{item['row_idx']}}}.")
 
 
 async def test_find_traces_scan_limit(call):
@@ -435,6 +535,17 @@ def test_duck_distinct_values(parquet_dir):
     assert values["subject"] == ["Algebra", "Geometry"]
     with pytest.raises(ValueError):
         runner.breakdown("eval_math500", "trace")
+
+
+def test_duck_find_rows_rejects_unknown_filter(parquet_dir):
+    duck = DuckRunner(source=str(parquet_dir) + "/{collection}/*.parquet")
+    with pytest.raises(ValueError):
+        duck.find_rows("eval_aime", {"trace": "x"}, 0, 1)
+
+
+def test_duck_file_offsets(parquet_dir):
+    duck = DuckRunner(source=str(parquet_dir) + "/{collection}/*.parquet")
+    assert sorted(duck.file_offsets("eval_aime").values()) == [0, 25]
 
 
 def test_duck_default_url():

@@ -33,16 +33,28 @@ def parquet_dir(tmp_path_factory):
         subject = ["Algebra", "Geometry", None][i % 3]
         strict = (i % 5) != 0 if model == "qwen3-8b" else (i % 3) == 0
         forced = strict or i % 7 == 0
-        rows.append((model, "math500", budget, subject, f"Level {1 + i % 3}", "end_think", strict, forced))
+        question = "What is 50% of 20?" if i == 7 else f"Question {i}: find x."
+        trace = f"Start of trace {i}.\n\nMiddle step.\n\nSo the answer is \\boxed{{{i}}}."
+        rows.append(
+            (f"p{i}", model, "math500", budget, subject, f"Level {1 + i % 3}", i / 40, "end_think", strict, forced)
+            + (str(i), f"[{i}]", question, trace)
+        )
     con = duckdb.connect()
     con.execute(
-        "CREATE TABLE t (model VARCHAR, dataset VARCHAR, token_budget BIGINT, subject VARCHAR, level VARCHAR, "
-        "finish_reason VARCHAR, correct_strict BOOLEAN, correct_answer_forced BOOLEAN)"
+        "CREATE TABLE t (problem_id VARCHAR, model VARCHAR, dataset VARCHAR, token_budget BIGINT, subject VARCHAR, "
+        "level VARCHAR, difficulty DOUBLE, finish_reason VARCHAR, correct_strict BOOLEAN, "
+        "correct_answer_forced BOOLEAN, predicted_answer VARCHAR, gt_answer VARCHAR, question VARCHAR, "
+        "trace VARCHAR, i INTEGER)"
     )
-    con.executemany("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rows)
-    for name in ("eval_math500", "eval_aime"):
+    con.executemany(
+        "INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [r + (n,) for n, r in enumerate(rows)]
+    )
+    for name in ("eval_math500", "eval_aime", "eval_deepmath"):
         (root / name).mkdir()
-        con.execute(f"COPY t TO '{root / name / '0000.parquet'}' (FORMAT parquet)")
+        for part, (lo, hi) in enumerate([(0, 25), (25, 40)]):
+            path = root / name / f"{part:04d}.parquet"
+            part_rows = f"SELECT * EXCLUDE (i) FROM t WHERE i >= {lo} AND i < {hi} ORDER BY i"
+            con.execute(f"COPY ({part_rows}) TO '{path}' (FORMAT parquet)")
     con.close()
     return root
 

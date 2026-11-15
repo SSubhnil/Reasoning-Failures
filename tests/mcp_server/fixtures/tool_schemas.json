@@ -639,6 +639,22 @@
      "title": "Partial",
      "type": "boolean"
     },
+    "source": {
+     "description": "Where the page came from: the dataset viewer, or DuckDB over the parquet files when the viewer was failing.",
+     "enum": [
+      "dataset_viewer",
+      "parquet"
+     ],
+     "title": "Source",
+     "type": "string"
+    },
+    "notes": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Notes",
+     "type": "array"
+    },
     "citation": {
      "title": "Citation",
      "type": "string"
@@ -650,6 +666,8 @@
     "items",
     "next_offset",
     "partial",
+    "source",
+    "notes",
     "citation"
    ],
    "title": "FindTracesOutput",

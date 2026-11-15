@@ -65,6 +65,10 @@ class Services:
     cache: DiskCache = field(default_factory=DiskCache)
     checker: AnswerChecker = field(default_factory=AnswerChecker)
     tokenizer: Callable | None = None  # injected in tests; default loads the Qwen3 tokenizer
+    viewer_deadline_s: float = 20.0  # total time find_traces waits for the viewer, retries included
+    viewer_cooldown_s: float = 300.0  # after a viewer endpoint fails, go straight to parquet for this long
+    fallback_timeout_s: float = 45.0
+    viewer_down_until: dict[str, float] = field(default_factory=dict)
 
 
 def _error_text(exc: Exception) -> str | None:
@@ -98,6 +102,47 @@ def _logged(fn):
             log.info("tool=%s latency_ms=%.0f status=%s", fn.__name__, (time.perf_counter() - start) * 1000, status)
 
     return wrapper
+
+
+def _one_line(exc: Exception, limit: int = 300) -> str:
+    return " ".join(str(exc).split())[:limit]
+
+
+async def _viewer_or_parquet(
+    svc: Services,
+    endpoint: str,
+    params: dict[str, Any],
+    collection: str,
+    filters: dict[str, Any],
+    text_query: str | None,
+) -> dict[str, Any]:
+    """Ask the dataset viewer; if it keeps failing, run the same query on the parquet files with DuckDB."""
+    if time.monotonic() >= svc.viewer_down_until.get(endpoint, 0.0):
+        try:
+            with anyio.fail_after(svc.viewer_deadline_s):
+                return {**await svc.hub.get(endpoint, params), "source": "dataset_viewer"}
+        except (UpstreamError, TimeoutError) as exc:
+            if isinstance(exc, UpstreamError) and not exc.retryable:
+                raise
+            viewer_error = str(exc) or f"/{endpoint} gave no answer within {svc.viewer_deadline_s:g} s"
+            svc.viewer_down_until[endpoint] = time.monotonic() + svc.viewer_cooldown_s
+            log.warning("/%s failing; using parquet for %.0f s", endpoint, svc.viewer_cooldown_s)
+    else:
+        viewer_error = f"/{endpoint} failed recently"
+    find = functools.partial(
+        svc.duck.find_rows,
+        collection,
+        filters,
+        params["offset"],
+        params["length"],
+        text_query,
+        timeout_s=svc.fallback_timeout_s,
+    )
+    try:
+        rows, total = await anyio.to_thread.run_sync(find)
+    except Exception as exc:
+        raise UpstreamError(f"{viewer_error.rstrip('.')}; the parquet fallback also failed: {_one_line(exc)}") from exc
+    return {"rows": rows, "num_rows_total": total, "partial": False, "source": "parquet"}
 
 
 def _str_or_none(value: Any) -> str | None:
@@ -266,13 +311,13 @@ def build_server(
                 )
             if not entry["search_supported"]:
                 raise UnsupportedForCollection(f"text search is not available for {collection}")
-            data = await svc.hub.get("search", {**base, "query": text_query})
+            data = await _viewer_or_parquet(svc, "search", {**base, "query": text_query}, collection, {}, text_query)
         elif where is not None:
             if not entry["filter_supported"]:
                 raise UnsupportedForCollection(f"filtering is not available for {collection}")
-            data = await svc.hub.get("filter", {**base, "where": where})
+            data = await _viewer_or_parquet(svc, "filter", {**base, "where": where}, collection, filters, None)
         elif entry["rows_supported"]:
-            data = await svc.hub.get("rows", base)
+            data = {**await svc.hub.get("rows", base), "source": "dataset_viewer"}
         else:
             raise InvalidArgument(f"{collection} is too large to list without a filter; pass at least one filter")
         rows = data.get("rows") or []
@@ -283,6 +328,14 @@ def build_server(
             next_offset = offset + len(items) if offset + len(items) < total and items else None
         else:
             next_offset = offset + len(items) if len(items) == limit else None
+        notes = []
+        if data["source"] == "parquet":
+            notes.append("the dataset viewer was failing, so this page was read from the parquet files with DuckDB")
+            if text_query is not None:
+                notes.append(
+                    "text_query was matched as a case-insensitive substring of the question and the trace, "
+                    "not with the viewer's ranked full-text search"
+                )
         return FindTracesOutput(
             collection=collection,
             total_matches=total,
@@ -290,6 +343,8 @@ def build_server(
             items=items,
             next_offset=next_offset,
             partial=bool(data.get("partial", False)),
+            source=data["source"],
+            notes=notes,
             citation=CITATION,
         )
 
@@ -433,7 +488,7 @@ def build_server(
                     raise UnsupportedForCollection(f"breakdown on eval_deepmath timed out ({exc})") from exc
                 raise
             except Exception as exc:
-                raise UpstreamError(f"parquet query failed: {' '.join(str(exc).split())[:300]}") from exc
+                raise UpstreamError(f"parquet query failed: {_one_line(exc)}") from exc
             svc.cache.set(key, rows)
         notes = [
             "computed over every row of the collection's parquet files",

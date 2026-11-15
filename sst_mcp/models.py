@@ -85,7 +85,8 @@ class TraceMeta(BaseModel):
     gt_answer: str | None = None
     question_preview: str = Field(description="First 300 characters of the question.")
     trace_chars: int | None = Field(
-        default=None, description="Length of the full trace in characters; null if the upstream cell was truncated."
+        default=None,
+        description="Length of the full trace in characters; null if the upstream cell was truncated.",
     )
 
 
@@ -96,6 +97,11 @@ class FindTracesOutput(BaseModel):
     items: list[TraceMeta]
     next_offset: int | None = Field(description="Pass as offset to get the next page; null when there are no more.")
     partial: bool = Field(description="True if the upstream index covers only part of the collection.")
+    source: Literal["dataset_viewer", "parquet"] = Field(
+        description="Where the page came from: the dataset viewer, or DuckDB over the parquet files when the "
+        "viewer was failing."
+    )
+    notes: list[str]
     citation: str
 
 

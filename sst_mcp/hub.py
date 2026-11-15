@@ -19,7 +19,13 @@ SCAN_LIMIT_MARKER = "Scan size limit exceeded"
 
 
 class UpstreamError(RuntimeError):
-    """The dataset viewer failed after retries. The message says what failed and what to try."""
+    """The dataset viewer failed. The message says what failed and what to try.
+
+    `retryable` is false for 4xx answers (the request itself was refused), true for 429, 5xx and timeouts."""
+
+    def __init__(self, message: str, retryable: bool = True) -> None:
+        super().__init__(message)
+        self.retryable = retryable
 
 
 class UnsupportedForCollection(RuntimeError):
@@ -92,7 +98,7 @@ class HubClient:
             last = f"/{endpoint} returned HTTP {resp.status_code}: {body[:200]}"
             if resp.status_code == 429 or resp.status_code >= 500:
                 continue
-            raise UpstreamError(last)
+            raise UpstreamError(last, retryable=False)
         raise UpstreamError(
             f"{last} (after {self.retries + 1} attempts). The Hugging Face dataset viewer is slow or unavailable; "
             "try again in a minute"
