@@ -26,6 +26,11 @@ Resources: `rf://dataset-card` (columns, licence, full BibTeX) and `rf://step-de
 
 ## Workflow
 
+Do only as much of this as the request needs, then answer. A lookup ("list", "show me N", "search for",
+"how many") is answered from `find_traces` or `accuracy_breakdown` output: do not read traces unless the user
+asks for their content, and then read only as many as they asked for. Run the full workflow for "why" and
+"where does it go wrong" questions.
+
 1. Call `list_collections()` once. Note `rows_supported`, `filter_supported` and the notes for the collection
    you need. Use the exact lowercase model ids, such as `qwen3-8b`.
 2. Call `accuracy_breakdown()` to find where accuracy drops: try `group_by="token_budget"`, `"subject"` or
@@ -45,7 +50,8 @@ unavailable. If it returns `unsupported_for_collection`, follow the message or p
 
 ## Token budget rules
 
-- Read at most 5 full traces per question. Prefer `view="tail"` with the default `max_chars`.
+- Call `get_trace` at most 5 times per question, all views counted. Prefer `view="tail"` with the default
+  `max_chars`. When you have what the user asked for, stop calling tools and answer.
 - Page with `offset` (use `next_offset`) instead of raising `limit`; `limit` is at most 20.
 - Never dump many traces into the answer. Summarise them, and quote only the lines that matter.
 - If the user asks for dozens of full traces, explain the limit and offer a sample plus a breakdown.

@@ -45,6 +45,27 @@ dataset viewer fails (see `docs/mcp.md`). A tool error is fed back to the model 
 `evals/results/<UTC date>_<model-slug>.json` (per-task calls, scores, transcript) and `.md` (summary table,
 tool-selection and argument accuracy over the tool tasks). Dry runs are prefixed `dryrun_`.
 
+### Summary
+
+| field | value |
+|---|---|
+| model | `nvidia/nemotron-3-ultra-550b-a55b:free` (OpenRouter free tier) |
+| latest run | 6, 15 Nov 2026 13:49 UTC, `evals/results/2026-11-15_nvidia-nemotron-3-ultra-550b-a55b-free_run6-skill-match-request.json` |
+| tasks passed | 19/20 |
+| tool selection (tool tasks) | 16/17 |
+| arguments (tool tasks) | 16/17 |
+| refuse tasks | 3/3 |
+| tool calls that errored | 0 of 54 |
+| failures caused by the server or the Hub | none in runs 4 to 6 |
+| remaining failure type | the model repeats calls until it runs out of turns (t06 in run 6: `list_collections` 8 times) |
+
+All runs used one free model; the eval was limited to free models. Nemotron is a weak tool caller: in about one task
+per run it repeats a call whose answer it already has, and in three reruns of t06 it did so once. The eval was
+not tuned to this model. Stronger models are expected to score at least as well, but none has been run. With 20
+tasks, one task is 5 points, so differences of one task between runs are within noise.
+
+### Runs
+
 Runs on 14 Nov 2026 with `nvidia/nemotron-3-ultra-550b-a55b:free`, no `HF_TOKEN` (files suffixed `_run1` to `_run3`):
 
 | run | change | passed | tool selection | arguments | refuse | tool calls that errored |
@@ -78,3 +99,16 @@ Runs on 15 Nov 2026 with the same model, with `HF_TOKEN` set and the `find_trace
   rejected by argument validation; the task still passed, since the eval scores the calls, not the final answer.
 - A first attempt at run 5 was discarded: the host's file share dropped mid-run and every task from t12 on hit
   local I/O errors.
+
+Run 6 on 15 Nov 2026, same setup, after a `SKILL.md` change: answer lookups ("list", "show me N", "search for")
+from `find_traces` output without reading traces, and count every `get_trace` view against the limit of 5
+(file suffixed `_run6`):
+
+| run | change | passed | tool selection | arguments | refuse | tool calls that errored |
+|---|---|---|---|---|---|---|
+| 6 | SKILL.md: match the work to the request | 19/20 | 16/17 | 16/17 | 3/3 | 0 of 54 |
+
+- t10 passed: two `get_trace` calls, then an answer.
+- t06 ("which collections, how many rows") called `list_collections` 8 times and ran out of turns. Run 4 shows
+  the same loop on t07 before the change, and t06 rerun three times passed three times, looping once (7 calls)
+  before answering, so this is the model, not the skill change.
